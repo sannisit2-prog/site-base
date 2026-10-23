@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eiiita bixo</title>
+
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* Palco principal do jogo */
+        .container-jogo {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            background-color: #111;
+            border: 4px solid white;
+            overflow: hidden;
+        }
+
+        /* Aplica renderização pixelada para TODas as imagens */
+        img {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            -ms-interpolation-mode: nearest-neighbor;
+            transition: transform 1s ease-in-out;
+        }
+
+        /* Definindo as fontes com os links diretos do GitHub */
+        @font-face {
+            font-family: 'fonteprincipal';
+            src: url('https://raw.githubusercontent.com/sannisit2-prog/html/main/DTM-Mono.otf');
+        }
+
+        @font-face {
+            font-family: 'fontesans';
+            src: url('https://raw.githubusercontent.com/sannisit2-prog/html/main/sans.ttf');
+        }
+
+        /* Estilo da caixa de diálogo */
+        .caixa-dialogo {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 720px;
+            height: 120px;
+            background-color: black;
+            border: 4px solid white;
+            border-radius: 4px;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        /* Estilo do texto dentro da caixa */
+        #texto-falando {
+            font-family: 'fontesans', monospace;
+            color: white;
+            font-size: 24px;
+            line-height: 1.5;
+        }
+
+        /* Estilo e animação dos Zs de sono */
+        .zzzz {
+            position: absolute;
+            font-family: 'fontesans', monospace;
+            font-size: 24px;
+            color: white;
+            animation: subirSono 3s infinite linear;
+            opacity: 0;
+            z-index: 4;
+        }
+
+        @keyframes subirSono {
+            0% {
+                transform: translateY(0px) scale(1.7);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) translateX(100px) scale(2.2);
+                opacity: 0;
+            }
+        }
+
+        /* Estilo do botão */
+        .botao-undertale {
+            background-color: black;
+            color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            font-family: 'fonteprincipal', monospace;
+            margin-bottom: 15px;
+        }
+
+        .texto-principal {
+            color: white;
+            font-size: 24px;
+            font-family: 'fonteprincipal', monospace;
+            margin-bottom: 10px;
+        }
+
+        /* Estilo da área de formulários (Login / Cadastro) */
+        #area-autenticacao {
+            position: absolute;
+            top: 40px;
+            left: 430px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 20;
+            font-family: 'fonteprincipal', monospace;
+            transition: all 0.3s ease;
+        }
+
+        .abas-auth {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .aba-btn {
+            background-color: black;
+            color: gray;
+            border: 1px solid gray;
+            padding: 4px 10px;
+            cursor: pointer;
+            font-family: 'fonteprincipal', monospace;
+        }
+
+        .aba-btn.ativa {
+            color: yellow;
+            border-color: yellow;
+        }
+
+        #area-autenticacao form {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        #area-autenticacao input {
+            background-color: black;
+            color: white;
+            border: 2px solid white;
+            padding: 8px;
+            font-size: 16px;
+            font-family: 'fontesans', monospace;
+            width: 250px;
+        }
+
+        #area-autenticacao label {
+            font-size: 14px;
+            color: white;
+        }
+
+        .btn-submit {
+            background-color: black;
+            color: white;
+            border: 2px solid white;
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            font-family: 'fonteprincipal', monospace;
+            margin-top: 6px;
+        }
+
+        /* Estilo dos Gaster Blasters */
+        .gaster-blaster {
+            position: absolute;
+            width: 120px;
+            display: none;
+            z-index: 26;
+            transition: opacity 0.2s ease;
+        }
+
+        /* Feixes de laser longos usando a imagem beam.png */
+        .feixe-laser {
+            position: absolute;
+            display: none;
+            z-index: 25;
+            width: 600px;
+            height: 50px;
+            object-fit: fill;
+            opacity: 0;
+            transition: opacity 0.1s ease;
+        }
+
+        /* Posicionamento e rotação dos lasers apontando para o formulário */
+        #laser-1 {
+            top: 25px;
+            left: 310px;
+            transform: rotate(35deg);
+            transform-origin: left center;
+        }
+
+        #laser-2 {
+            top: 315px;
+            left: 420px;
+            transform: rotate(-65deg);
+            transform-origin: left center;
+        }
+
+        #laser-3 {
+            top: 330px;
+            left: 560px;
+            transform: rotate(-130deg);
+            transform-origin: left center;
+        }
+
+        /* Animação de Tremor da Tela */
+        .tremor-tela {
+            animation: tremer 0.4s infinite;
+        }
+
+        @keyframes tremer {
+            0% { transform: translate(3px, 3px) rotate(0deg); }
+            20% { transform: translate(-3px, -3px) rotate(-1deg); }
+            40% { transform: translate(-3px, 3px) rotate(1deg); }
+            60% { transform: translate(3px, -3px) rotate(0deg); }
+            80% { transform: translate(2px, 2px) rotate(1deg); }
+            100% { transform: translate(0px, 0px) rotate(0deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="titulo-status" class="texto-principal">
+        Acorde o Sans
+    </h1>
+
+    <button id="btn-acao" class="botao-undertale" onclick="controlarDialogo()">
+        clique aqui
+    </button>
+
+    <!-- CONTAINER DO JOGO -->
+    <div class="container-jogo" id="palco-jogo">
+        <!-- Sprites do Sans -->
+        <img src="https://raw.githubusercontent.com/sannisit2-prog/html/main/Legs.png" alt="pernas_do_sans" id="pernas-sans" style="position: absolute; top: 320px; left: 310px; width: 200px;">
+        
+        <!-- Tronco do Sans -->
+        <img src="https://raw.githubusercontent.com/sannisit2-prog/html/main/AngryGrr_1.png" alt="tronco_do_sans" id="tronco-sans" style="position: absolute; top: 50px; left: 223px; width: 400px; z-index: 2;">
+        
+        <img src="https://raw.githubusercontent.com/sannisit2-prog/html/main/3.png" alt="rosto_do_sans" id="rosto-sans" style="position: absolute; top: 110px; left: 335px; width: 140px; z-index: 3;">
+        
+        <!-- Gaster Blasters -->
+        <img src="https://raw.githubusercontent.com/sannisit2-prog/html/main/gasterblaster.png" alt="Gaster Blaster 1" id="gb-1" class="gaster-blaster" style="top: -10px; left: 240px; transform: rotate(-50deg);">
+        <img src="https://raw.githubusercontent.com/sannisit2-prog/html/main/gasterblaster.png" alt="Gaster Blaster 2" id="gb-2" class="gaster-blaster" style="top: 300px; left: 350px; transform: rotate(-160deg); z-index: 0;">
+        <img src="https://raw.githubusercontent.com/sannisit2-prog/html/main/gasterblaster.png" alt="Gaster Blaster 3" id="gb-3" class="gaster-blaster" style="top: 300px; left: 600px; transform: rotate(-210deg); z-index: 0;">
+
+        <!-- Feixes de Laser Longos -->
+        <img src="https://raw.githubusercontent.com/sannisit2-prog/html/main/beam.png" alt="Laser 1" id="laser-1" class="feixe-laser">
+        <img src="https://raw.githubusercontent.com/sannisit2-prog/html/main/beam.png" alt="Laser 2" id="laser-2" class="feixe-laser">
+        <img src="https://raw.githubusercontent.com/sannisit2-prog/html/main/beam.png" alt="Laser 3" id="laser-3" class="feixe-laser">
+
+        <!-- Zs flutuantes -->
+        <div class="zzzz" style="top: 80px; left: 440px; animation-delay: 0s;">Z</div>
+        <div class="zzzz" style="top: 80px; left: 440px; animation-delay: 1.0s;">Z</div>
+        <div class="zzzz" style="top: 60px; left: 450px; animation-delay: 2.0s;">Z</div>
+
+        <!-- ÁREA DE AUTENTICAÇÃO (CADASTRO / LOGIN) -->
+        <div id="area-autenticacao">
+            <div class="abas-auth" id="container-abas">
+                <button type="button" class="aba-btn ativa" id="aba-cad" onclick="mudarAba('cad')">cadastrar</button>
+                <button type="button" class="aba-btn" id="aba-log" onclick="mudarAba('log')">entrar</button>
+            </div>
+
+            <!-- FORMULÁRIO DE CADASTRO -->
+            <form id="form-cadastro" onsubmit="cadastrarUsuario(event)">
+                <label>Nome:</label>
+                <input type="text" id="cad-nome" placeholder="Seu nome" required>
+                
+                <label>E-mail:</label>
+                <input type="email" id="cad-email" placeholder="seu@email.com" required>
+                
+                <label>Senha:</label>
+                <input type="password" id="cad-senha" placeholder="Sua senha" required>
+
+                <button type="submit" class="btn-submit">criar conta</button>
+            </form>
+
+            <!-- FORMULÁRIO DE LOGIN -->
+            <form id="form-login" onsubmit="fazerLogin(event)" style="display: none;">
+                <label>E-mail:</label>
+                <input type="email" id="log-email" placeholder="seu@email.com" required>
+                
+                <label>Senha:</label>
+                <input type="password" id="log-senha" placeholder="Sua senha" required>
+
+                <button type="submit" class="btn-submit" id="btn-login-submit">entrar</button>
+            </form>
+        </div>
+
+        <!-- Caixa de Diálogo -->
+        <div class="caixa-dialogo" id="caixa-dialogo">
+            <span id="texto-falando"></span>
+        </div>
+    </div>
+
+    <script>
+        let somFala = new Audio('https://raw.githubusercontent.com/sannisit2-prog/html/main/v_sans.wav'); 
+        let aparecer = new Audio('https://raw.githubusercontent.com/sannisit2-prog/html/main/ding.wav');
+        let somBlaster = new Audio('https://raw.githubusercontent.com/sannisit2-prog/html/main/blaster.wav');
+        let somTiro = new Audio('https://raw.githubusercontent.com/sannisit2-prog/html/main/blaster_fire.wav');
+        let somConfirmar = new Audio('https://raw.githubusercontent.com/sannisit2-prog/html/main/confirm.wav');
+        let musicaFundo = null;
+
+        let falaSans = "Zzz...";
+        let indice = 0;
+        let etapaDialogo = 0;
+        let tentativasLogin = 0;
+        let loginBloqueadoSempre = false;
+
+        function digitarTexto() {
+            if (indice < falaSans.length) {
+                let caractereAtual = falaSans.charAt(indice);
+                document.getElementById("texto-falando").innerHTML += caractereAtual;
+                
+                if (caractereAtual !== " " && caractereAtual !== "." && caractereAtual !== ",") {
+                    somFala.currentTime = 0;
+                    somFala.play().catch(() => {});
+                }
+
+                indice++;
+                setTimeout(digitarTexto, 60);
+            } else {
+                if (falaSans.includes("já chega")) {
+                    setTimeout(() => {
+                        document.getElementById("caixa-dialogo").style.display = "none";
+                        exibirApenasCadastro();
+                    }, 3000);
+                } else if (
+                    falaSans.includes("já tá cadastrado") || 
+                    falaSans.includes("incorretos") || 
+                    falaSans.includes("chances") || 
+                    falaSans.includes("restam") || 
+                    falaSans.includes("ultima chance")
+                ) {
+                    setTimeout(() => {
+                        document.getElementById("caixa-dialogo").style.display = "none";
+                        if (loginBloqueadoSempre) {
+                            exibirApenasCadastro();
+                        } else {
+                            document.getElementById("area-autenticacao").style.display = "flex";
+                        }
+                        document.getElementById("rosto-sans").src = "https://raw.githubusercontent.com/sannisit2-prog/html/main/3.png";
+                    }, 3000);
+                }
+            }
+        }
+
+        function exibirApenasCadastro() {
+            loginBloqueadoSempre = true;
+            document.getElementById("container-abas").style.display = "none";
+            document.getElementById("form-login").style.display = "none";
+            document.getElementById("form-cadastro").style.display = "flex";
+            document.getElementById("area-autenticacao").style.display = "flex";
+            document.getElementById("rosto-sans").src = "https://raw.githubusercontent.com/sannisit2-prog/html/main/3.png";
+        }
+
+        window.onload = function() {
+            digitarTexto();
+        };
+
+        function controlarDialogo() {
+            if (etapaDialogo === 0) {
+                document.getElementById("titulo-status").innerText = "Sans acordou!";
+                document.getElementById("rosto-sans").src = "https://raw.githubusercontent.com/sannisit2-prog/html/main/1.png";
+
+                let zzzList = document.querySelectorAll(".zzzz");
+                zzzList.forEach(function(z) { z.style.display = "none"; });
+
+                if (!musicaFundo) {
+                    musicaFundo = new Audio('https://raw.githubusercontent.com/sannisit2-prog/html/main/theme.mp3');
+                    musicaFundo.loop = true;
+                }
+                musicaFundo.play().catch(() => {});
+
+                etapaDialogo = 1;
+                falaSans = "Heh... peguei no sono por um segundo.";
+                document.getElementById("texto-falando").innerHTML = "";
+                indice = 0;
+                digitarTexto();
+
+                document.getElementById("btn-acao").innerText = "continuar";
+
+            } else if (etapaDialogo === 1) {
+                etapaDialogo = 2;
+                falaSans = "vamos lá.";
+                document.getElementById("texto-falando").innerHTML = "";
+                indice = 0;
+                digitarTexto();
+
+                document.getElementById("rosto-sans").src = "https://raw.githubusercontent.com/sannisit2-prog/html/main/5.png";
+
+            } else if (etapaDialogo === 2) {
+                etapaDialogo = 3;
+                finalizarFalaEAnimar();
+            }
+        }
+
+        function finalizarFalaEAnimar() {
+            document.getElementById("rosto-sans").src = "https://raw.githubusercontent.com/sannisit2-prog/html/main/3.png";
+
+            document.getElementById("caixa-dialogo").style.display = "none";
+            document.getElementById("btn-acao").style.display = "none";
+            document.getElementById("titulo-status").style.display = "none";
+
+            let deslocamento = "translateX(-200px)";
+            document.getElementById("rosto-sans").style.transform = deslocamento;
+            document.getElementById("tronco-sans").style.transform = deslocamento;
+            document.getElementById("pernas-sans").style.transform = deslocamento;
+
+            setTimeout(() => {
+                aparecer.currentTime = 0;
+                aparecer.play().catch(() => {});
+                document.getElementById("area-autenticacao").style.display = "flex";
+            }, 800);
+        }
+
+        function mudarAba(tipo) {
+            if (loginBloqueadoSempre) return;
+
+            let formCad = document.getElementById("form-cadastro");
+            let formLog = document.getElementById("form-login");
+            let abaCad = document.getElementById("aba-cad");
+            let abaLog = document.getElementById("aba-log");
+
+            if (tipo === 'cad') {
+                formCad.style.display = "flex";
+                formLog.style.display = "none";
+                abaCad.classList.add("ativa");
+                abaLog.classList.remove("ativa");
+            } else {
+                formCad.style.display = "none";
+                formLog.style.display = "flex";
+                abaLog.classList.add("ativa");
+                abaCad.classList.remove("ativa");
+            }
+        }
+
+        function cadastrarUsuario(event) {
+            event.preventDefault();
+
+            let nome = document.getElementById("cad-nome").value.trim();
+            let email = document.getElementById("cad-email").value.trim().toLowerCase();
+            let senha = document.getElementById("cad-senha").value;
+
+            let usuarios = JSON.parse(localStorage.getItem("usuarios_cadastrados")) || [];
+            let usuarioExistente = usuarios.find(u => u.email === email);
+
+            if (usuarioExistente) {
+                falarComSans("https://raw.githubusercontent.com/sannisit2-prog/html/main/5.png", "ei, esse e-mail já tá cadastrado. tente outro.");
+                return;
+            }
+
+            usuarios.push({ nome: nome, email: email, senha: senha });
+            localStorage.setItem("usuarios_cadastrados", JSON.stringify(usuarios));
+
+            somConfirmar.currentTime = 0;
+            somConfirmar.play().catch(() => {});
+
+            document.getElementById("form-cadastro").reset();
+            falarComSans("https://raw.githubusercontent.com/sannisit2-prog/html/main/7.png", "prontinho " + nome + ", conta criada com sucesso!");
+        }
+
+        function fazerLogin(event) {
+            event.preventDefault();
+
+            let email = document.getElementById("log-email").value.trim().toLowerCase();
+            let senha = document.getElementById("log-senha").value;
+
+            let usuarios = JSON.parse(localStorage.getItem("usuarios_cadastrados")) || [];
+            let usuarioValido = usuarios.find(u => u.email === email && u.senha === senha);
+
+            if (usuarioValido) {
+                somConfirmar.currentTime = 0;
+                somConfirmar.play().catch(() => {});
+
+                falarComSans("https://raw.githubusercontent.com/sannisit2-prog/html/main/1.png", "bem-vindo de volta, " + usuarioValido.nome + "!");
+            } else {
+                tentativasLogin++;
+                animarTroncoErro();
+
+                if (tentativasLogin === 1) {
+                    falarComSans("https://raw.githubusercontent.com/sannisit2-prog/html/main/5.png", "errado, e-mail ou senha incorretos.");
+                } else if (tentativasLogin === 2) {
+                    somBlaster.currentTime = 0;
+                    somBlaster.play().catch(() => {});
+                    document.getElementById("gb-1").style.display = "block";
+                    falarComSans("https://raw.githubusercontent.com/sannisit2-prog/html/main/2.png", "de novo não, você só tem 3 chances.");
+                } else if (tentativasLogin === 3) {
+                    somBlaster.currentTime = 0;
+                    somBlaster.play().catch(() => {});
+                    document.getElementById("gb-2").style.display = "block";
+                    falarComSans("https://raw.githubusercontent.com/sannisit2-prog/html/main/UpHappy_6.png", "errou de novo, restam 2 chances.");
+                } else if (tentativasLogin === 4) {
+                    somBlaster.currentTime = 0;
+                    somBlaster.play().catch(() => {});
+                    document.getElementById("gb-3").style.display = "block";
+                    falarComSans("https://raw.githubusercontent.com/sannisit2-prog/html/main/Bruh3.png", "ultima chance, cuidado com o que faz.");
+                } else if (tentativasLogin >= 5) {
+                    animarGasterBlastersETirar();
+                    falarComSans("https://raw.githubusercontent.com/sannisit2-prog/html/main/UpHappy_5.png", "já chega, sem login pra você.");
+                }
+            }
+        }
+
+        function animarGasterBlastersETirar() {
+            let frame = 1;
+            let blasters = [document.getElementById("gb-1"), document.getElementById("gb-2"), document.getElementById("gb-3")];
+            
+            let animInterval = setInterval(() => {
+                frame++;
+                let nomeArquivo = frame === 1 
+                    ? "https://raw.githubusercontent.com/sannisit2-prog/html/main/gasterblaster.png" 
+                    : `https://raw.githubusercontent.com/sannisit2-prog/html/main/gasterblaster_${frame}.png`;
+                
+                blasters.forEach(b => {
+                    if (b.style.display === "block") {
+                        b.src = nomeArquivo;
+                    }
+                });
+
+                if (frame >= 6) {
+                    clearInterval(animInterval);
+                    dispararLasersLongos();
+                }
+            }, 80);
+        }
+
+        function dispararLasersLongos() {
+            let palco = document.getElementById("palco-jogo");
+            let l1 = document.getElementById("laser-1");
+            let l2 = document.getElementById("laser-2");
+            let l3 = document.getElementById("laser-3");
+            let blasters = [document.getElementById("gb-1"), document.getElementById("gb-2"), document.getElementById("gb-3")];
+
+            somTiro.currentTime = 0;
+            somTiro.play().catch(() => {});
+
+            l1.style.display = "block";
+            l2.style.display = "block";
+            l3.style.display = "block";
+            
+            setTimeout(() => {
+                l1.style.opacity = "1";
+                l2.style.opacity = "1";
+                l3.style.opacity = "1";
+                palco.classList.add("tremor-tela");
+            }, 50);
+
+            setTimeout(() => {
+                l1.style.opacity = "0";
+                l2.style.opacity = "0";
+                l3.style.opacity = "0";
+                
+                blasters.forEach(b => {
+                    b.style.opacity = "0";
+                });
+
+                palco.classList.remove("tremor-tela");
+
+                setTimeout(() => {
+                    l1.style.display = "none";
+                    l2.style.display = "none";
+                    l3.style.display = "none";
+                    
+                    blasters.forEach(b => {
+                        b.style.display = "none";
+                    });
+                }, 200);
+            }, 600);
+        }
+
+        function animarTroncoErro() {
+            let tronco = document.getElementById("tronco-sans");
+            let troca = false;
+            let contador = 0;
+
+            let intervaloAnimacao = setInterval(() => {
+                if (troca) {
+                    tronco.src = "https://raw.githubusercontent.com/sannisit2-prog/html/main/Nu_Uh1.png";
+                } else {
+                    tronco.src = "https://raw.githubusercontent.com/sannisit2-prog/html/main/Nu_Uh2.png";
+                }
+                
+                troca = !troca;
+                contador++;
+
+                if (contador >= 4) {
+                    clearInterval(intervaloAnimacao);
+                    setTimeout(() => {
+                        tronco.src = "https://raw.githubusercontent.com/sannisit2-prog/html/main/AngryGrr_1.png";
+                    }, 400);
+                }
+            }, 400);
+        }
+
+        function falarComSans(spriteRosto, texto) {
+            document.getElementById("caixa-dialogo").style.display = "block";
+            document.getElementById("area-autenticacao").style.display = "none";
+            document.getElementById("rosto-sans").src = spriteRosto;
+
+            falaSans = texto;
+            document.getElementById("texto-falando").innerHTML = "";
+            indice = 0;
+            digitarTexto();
+        }
+    </script>
+
+</body>
+</html>
